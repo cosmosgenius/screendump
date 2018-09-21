@@ -1,0 +1,9 @@
+Package: com.appknox.screendump
+Name: screendump
+Depends: mobilesubstrate
+Version: 0.0.1
+Architecture: iphoneos-arm
+Description: An awesome MobileSubstrate tweak!
+Maintainer: Sharat M R
+Author: Sharat M R
+Section: Tweaks
