@@ -1,110 +1,149 @@
-/* How to Hook with Logos
-Hooks are written with syntax similar to that of an Objective-C @implementation.
-You don't need to #include <substrate.h>, it will be done automatically, as will
-the generation of a class list and an automatic constructor.
+#include <substrate.h>
+#include <CoreFoundation/CoreFoundation.h>
+// #include <errno.h>
+// typedef void *IOMobileFramebufferRef;
+typedef struct __IOSurface *IOSurfaceRef;
+typedef struct __IOMobileFramebuffer *IOMobileFramebufferRef;
+// typedef void *CoreSurfaceBufferRef;
+// typedef mach_port_t io_object_t;
+// typedef io_object_t io_connect_t;
+// typedef io_connect_t IOMobileFramebufferConnection;
+// typedef	kern_return_t IOReturn;
+typedef unsigned int u_int32_t;
+typedef unsigned long long u_int64_t;
+typedef u_int64_t uint64_t;
+typedef u_int32_t uint32_t;
 
-%hook ClassName
-
-// Hooking a class method
-+ (id)sharedInstance {
-	return %orig;
-}
-
-// Hooking an instance method with an argument.
-- (void)messageName:(int)argument {
-	%log; // Write a message about this call, including its class, name and arguments, to the system log.
-
-	%orig; // Call through to the original function with its original arguments.
-	%orig(nil); // Call through to the original function with a custom argument.
-
-	// If you use %orig(), you MUST supply all arguments (except for self and _cmd, the automatically generated ones.)
-}
-
-// Hooking an instance method with no arguments.
-- (id)noArguments {
-	%log;
-	id awesome = %orig;
-	[awesome doSomethingElse];
-
-	return awesome;
-}
-
-// Always make sure you clean up after yourself; Not doing so could have grave consequences!
-%end
-*/
-
-#include <errno.h>
-
-typedef void *IOMobileFramebufferRef;
-extern "C" void IOMobileFramebufferGetDisplaySize(IOMobileFramebufferRef connect, CGSize *size);
+// extern "C" void IOMobileFramebufferGetDisplaySize(IOMobileFramebufferRef connect, CGSize *size);
 
 extern "C" kern_return_t IOMobileFramebufferSwapSetLayer(
     IOMobileFramebufferRef fb,
-    int layer,
+    uint32_t layer,
     IOSurfaceRef buffer,
     CGRect bounds,
     CGRect frame,
-    int flags
+    uint32_t flags
 );
 
-int bmp_write(const void *image, size_t xsize, size_t ysize, const char *filename) {
-    unsigned char header[54] = {
-        0x42, 0x4d, 0, 0, 0, 0, 0, 0, 0, 0,
-        54, 0, 0, 0, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 32, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0
-    };
+// extern "C" kern_return_t IOMobileFramebufferSwapSetLayer(IOMobileFramebufferRef fb, uint64_t layer, IOSurfaceRef buffer, uint64_t bounds);
 
-    long file_size = (long)xsize * (long)ysize * 4 + 54;
-    header[2] = (unsigned char)(file_size &0x000000ff);
-    header[3] = (file_size >> 8) & 0x000000ff;
-    header[4] = (file_size >> 16) & 0x000000ff;
-    header[5] = (file_size >> 24) & 0x000000ff;
+// extern "C" kern_return_t IMobileFramebufferSwapSetLayer(
+//     IOMobileFramebufferConnection connection,
+//     int layerid,
+//     CoreSurfaceBufferRef surface
+// );O
 
-    long width = xsize;
-    header[18] = width & 0x000000ff;
-    header[19] = (width >> 8) &0x000000ff;
-    header[20] = (width >> 16) &0x000000ff;
-    header[21] = (width >> 24) &0x000000ff;
+// extern "C" IOReturn kern_SwapSetLayer(
+//     IOMobileFramebufferRef fb,
+//     uint32_t layer,
+//     IOSurfaceRef buffer,
+//     CGRect bounds,
+//     CGRect frame,
+//     uint32_t flags
+// );
 
-    long height = ysize;
-    header[22] = height &0x000000ff;
-    header[23] = (height >> 8) &0x000000ff;
-    header[24] = (height >> 16) &0x000000ff;
-    header[25] = (height >> 24) &0x000000ff;
+// int bmp_write(const void *image, size_t xsize, size_t ysize, const char *filename) {
+//     unsigned char header[54] = {
+//         0x42, 0x4d, 0, 0, 0, 0, 0, 0, 0, 0,
+//         54, 0, 0, 0, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 32, 0,
+//         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+//         0, 0, 0, 0
+//     };
 
-    char fname_bmp[128];
-    sprintf(fname_bmp, "%s", filename);
+//     long file_size = (long)xsize * (long)ysize * 4 + 54;
+//     header[2] = (unsigned char)(file_size &0x000000ff);
+//     header[3] = (file_size >> 8) & 0x000000ff;
+//     header[4] = (file_size >> 16) & 0x000000ff;
+//     header[5] = (file_size >> 24) & 0x000000ff;
 
-    FILE *fp;
-    if (!(fp = fopen(fname_bmp, "wb"))) {
-        NSLog(@"Error no is : %s, %d", fname_bmp, errno);
-        return -1;
-    }
+//     long width = xsize;
+//     header[18] = width & 0x000000ff;
+//     header[19] = (width >> 8) &0x000000ff;
+//     header[20] = (width >> 16) &0x000000ff;
+//     header[21] = (width >> 24) &0x000000ff;
 
-    fwrite(header, sizeof(unsigned char), 54, fp);
-    fwrite(image, sizeof(unsigned char), (size_t)(long)xsize * ysize * 4, fp);
+//     long height = ysize;
+//     header[22] = height &0x000000ff;
+//     header[23] = (height >> 8) &0x000000ff;
+//     header[24] = (height >> 16) &0x000000ff;
+//     header[25] = (height >> 24) &0x000000ff;
 
-    fclose(fp);
-    return 0;
+//     char fname_bmp[128];
+//     sprintf(fname_bmp, "%s", filename);
+
+//     FILE *fp;
+//     if (!(fp = fopen(fname_bmp, "wb"))) {
+//         NSLog(@"Error no is : %s, %d", fname_bmp, errno);
+//         return -1;
+//     }
+
+//     fwrite(header, sizeof(unsigned char), 54, fp);
+//     fwrite(image, sizeof(unsigned char), (size_t)(long)xsize * ysize * 4, fp);
+
+//     fclose(fp);
+//     return 0;
+// }
+
+// %hookf(kern_return_t, IOMobileFramebufferSwapSetLayer, IOMobileFramebufferRef fb, int layer, IOSurfaceRef buffer, CGRect bounds, CGRect frame, int flags) {
+//     CGSize size;
+//     size_t width_;
+//     size_t height_;
+//     IOMobileFramebufferGetDisplaySize(fb, &size);
+//     width_ = size.width;
+//     height_ = size.height;
+//     size_t width = IOSurfaceGetWidth(buffer);
+//     size_t height = IOSurfaceGetHeight(buffer);
+//     NSLog(@"sharat %ld, %ld, %ld, %ld", width_, height_, width, height);
+//     NSString *path = @"/tmp/test.bmp";
+//     void *bytes = IOSurfaceGetBaseAddress(buffer);
+//     if(width) {
+//         int ret;
+//         ret = bmp_write(bytes, width, height, [path UTF8String]);
+//         NSLog(@"sharat %d", ret);
+//     }
+//     NSLog(@"sharat");
+//     return %orig;
+// }
+
+// %hookf(kern_return_t, IOMobileFramebufferSwapSetLayer, IOMobileFramebufferRef fb, int layer, IOSurfaceRef buffer, CGRect bounds, CGRect frame, int flags) {
+//     NSLog(@"sharat: IOMobileFramebufferSwapSetLayer");
+//     return %orig;
+// }
+
+// %hookf(kern_return_t, IOMobileFramebufferSwapSetLayer, IOMobileFramebufferRef fb, uint64_t layer, IOSurfaceRef buffer, uint64_t bounds) {
+//     NSLog(@"sharat: IOMobileFramebufferSwapSetLayer");
+//     return %orig;
+// }
+
+// %hookf(IOReturn, kern_SwapSetLayer, IOMobileFramebufferRef fb, uint32_t layer, IOSurfaceRef buffer, CGRect bounds, CGRect frame, uint32_t flags) {
+//     NSLog(@"sharat: kern_SwapSetLayer");
+//     return %orig;
+// }
+
+
+UIColor *(*oldinitWithRed)(id self, SEL _cmd,
+    CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha);
+
+UIColor *newinitWithRed(id self, SEL _cmd,
+    CGFloat red, CGFloat green, CGFloat blue, CGFloat alpha
+) {
+    return oldinitWithRed(self, _cmd, 1, 0, blue, alpha);
 }
 
-%hookf(kern_return_t, IOMobileFramebufferSwapSetLayer, IOMobileFramebufferRef fb, int layer, IOSurfaceRef buffer, CGRect bounds, CGRect frame, int flags) {
-    CGSize size;
-    size_t width_;
-    size_t height_;
-    IOMobileFramebufferGetDisplaySize(fb, &size);
-    width_ = size.width;
-    height_ = size.height;
-    size_t width = IOSurfaceGetWidth(buffer);
-    size_t height = IOSurfaceGetHeight(buffer);
-    NSLog(@"sharat %ld, %ld, %ld, %ld", width_, height_, width, height);
-    NSString *path = @"/tmp/test.bmp";
-    void *bytes = IOSurfaceGetBaseAddress(buffer);
-    if(width) {
-        int ret;
-        ret = bmp_write(bytes, width, height, [path UTF8String]);
-        NSLog(@"sharat %d", ret);
-    }
-    return %orig;
+kern_return_t (*oldIOMobileFramebufferSwapSetLayer)(IOMobileFramebufferRef fb, uint32_t layer, IOSurfaceRef buffer, CGRect bounds, CGRect frame, uint32_t flags);
+
+kern_return_t newIOMobileFramebufferSwapSetLayer(IOMobileFramebufferRef fb, uint32_t layer, IOSurfaceRef buffer, CGRect bounds, CGRect frame, uint32_t flags) {
+    NSLog(@"sharat: IOMobileFramebufferSwapSetLayer");
+    return oldIOMobileFramebufferSwapSetLayer(fb, layer, buffer, bounds, frame, flags);
+}
+
+MSInitialize {
+    MSHookMessageEx([UIColor class], @selector(initWithRed:green:blue:alpha:),
+        (IMP) &newinitWithRed, (IMP*) &oldinitWithRed);
+
+    MSHookFunction(
+        (void *)IOMobileFramebufferSwapSetLayer,
+        (void *)&newIOMobileFramebufferSwapSetLayer,
+        (void **)&oldIOMobileFramebufferSwapSetLayer
+    );
 }
