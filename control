@@ -1,4 +1,4 @@
-Package: com.appknox.screendump
+Package: com.cosmosgenius.screendump
 Name: screendump
 Depends: mobilesubstrate
 Version: 0.0.1
