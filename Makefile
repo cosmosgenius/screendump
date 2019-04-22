@@ -10,5 +10,8 @@ screendump_PRIVATE_FRAMEWORKS := IOMobileFramebuffer
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 
+SUBPROJECTS += screendumpprefs
+include $(THEOS_MAKE_PATH)/aggregate.mk
+
 after-install::
 	install.exec "killall -9 backboardd"

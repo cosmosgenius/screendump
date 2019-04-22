@@ -1,38 +1,4 @@
-/* How to Hook with Logos
-Hooks are written with syntax similar to that of an Objective-C @implementation.
-You don't need to #include <substrate.h>, it will be done automatically, as will
-the generation of a class list and an automatic constructor.
-
-%hook ClassName
-
-// Hooking a class method
-+ (id)sharedInstance {
-	return %orig;
-}
-
-// Hooking an instance method with an argument.
-- (void)messageName:(int)argument {
-	%log; // Write a message about this call, including its class, name and arguments, to the system log.
-
-	%orig; // Call through to the original function with its original arguments.
-	%orig(nil); // Call through to the original function with a custom argument.
-
-	// If you use %orig(), you MUST supply all arguments (except for self and _cmd, the automatically generated ones.)
-}
-
-// Hooking an instance method with no arguments.
-- (id)noArguments {
-	%log;
-	id awesome = %orig;
-	[awesome doSomethingElse];
-
-	return awesome;
-}
-
-// Always make sure you clean up after yourself; Not doing so could have grave consequences!
-%end
-*/
-
+static BOOL CCSisEnabled = YES;
 #include <errno.h>
 
 typedef void *IOMobileFramebufferRef;
@@ -122,19 +88,37 @@ int write_to_file(const void *image, size_t xsize, size_t ysize, size_t pixel_si
     size_t height = IOSurfaceGetHeight(buffer);
     size_t byte_per_pixel = IOSurfaceGetBytesPerElement(buffer);
     NSLog(@"sharat %ld, %ld, %ld, %ld, %ld", width_, height_, width, height, byte_per_pixel);
-    NSString *path = @"/tmp/test.bmp";
-    void *bytes = IOSurfaceGetBaseAddress(buffer);
+    // NSString *path = @"/tmp/test.bmp";
+    // void *bytes = IOSurfaceGetBaseAddress(buffer);
     // if(width) {
     //     int ret;
     //     ret = bmp_write(bytes, width, height, [path UTF8String]);
     //     NSLog(@"sharat %d", ret);
     // }
 
-    IOSurfaceLock(buffer, kIOSurfaceLockReadOnly, NULL);
-    IOSurfaceFlushProcessorCaches(buffer);
-    write_to_file(bytes, width, height, byte_per_pixel, [path UTF8String]);
-    IOSurfaceUnlock(buffer, kIOSurfaceLockReadOnly, NULL);
-
+    // IOSurfaceLock(buffer, kIOSurfaceLockReadOnly, NULL);
+    // IOSurfaceFlushProcessorCaches(buffer);
+    // write_to_file(bytes, width, height, byte_per_pixel, [path UTF8String]);
+    // IOSurfaceUnlock(buffer, kIOSurfaceLockReadOnly, NULL);
+    NSLog(@"sharat %d", CCSisEnabled);
     return %orig;
 }
 
+static void loadPrefs()
+{
+    NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/com.cosmosgenius.screendumpprefs.plist"];
+    if(prefs) {
+        CCSisEnabled = ([prefs objectForKey:@"CCSisEnabled"]) ? [[prefs objectForKey:@"CCSisEnabled"] boolValue] : CCSisEnabled;
+    }
+    [prefs release];
+}
+
+%ctor
+{
+    CFNotificationCenterAddObserver(
+        CFNotificationCenterGetDarwinNotifyCenter(),
+        NULL, (CFNotificationCallback)loadPrefs,
+        CFSTR("com.cosmosgenius.screendumpprefs/settingschanged"),
+        NULL, CFNotificationSuspensionBehaviorCoalesce);
+    loadPrefs();
+}
