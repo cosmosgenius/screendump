@@ -10,8 +10,12 @@ screendump_PRIVATE_FRAMEWORKS := IOMobileFramebuffer
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 
-SUBPROJECTS += screendumpprefs
-include $(THEOS_MAKE_PATH)/aggregate.mk
+# SUBPROJECTS += screendumpprefs
+# include $(THEOS_MAKE_PATH)/aggregate.mk
 
 after-install::
 	install.exec "killall -9 backboardd"
+
+internal-stage::
+	#PreferenceLoader plist
+	$(ECHO_NOTHING)if [ -f Preferences.plist ]; then mkdir -p $(THEOS_STAGING_DIR)/Library/PreferenceLoader/Preferences/screendump; cp Preferences.plist $(THEOS_STAGING_DIR)/Library/PreferenceLoader/Preferences/screendump/; fi$(ECHO_END)
