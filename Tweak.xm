@@ -142,15 +142,11 @@ static void OnFrameUpdate(IOMobileFramebufferRef fb, IOSurfaceRef buffer) {
         VNCSetup();
         initialBuffer();
     }
-
-    NSLog(@"sharat %ld, %ld, %ld, %ld, %ld", width_, height_, width, height, byte_per_pixel);
-    NSLog(@"sharat accerated %ld", accelerator == NULL);
     if(screen == NULL) {
         return;
     }
     if (accelerator != NULL) {
         IOSurfaceAcceleratorTransferSurface(accelerator, buffer, static_buffer, NULL, NULL, NULL, NULL);
-        NSLog(@"sharat accerated transfer");
     } else {
         IOSurfaceLock(buffer, kIOSurfaceLockReadOnly, NULL);
         void *bytes = IOSurfaceGetBaseAddress(buffer);
