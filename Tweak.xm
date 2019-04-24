@@ -10,6 +10,7 @@ static NSLock *lock;
 static size_t width;
 static size_t height;
 static size_t byte_per_pixel;
+static const size_t bits_per_sample = 8;
 
 static CFTypeRef (*$GSSystemCopyCapability)(CFStringRef);
 static CFTypeRef (*$GSSystemGetCapability)(CFStringRef);
@@ -46,8 +47,11 @@ static void VNCSetup() {
     int argc(1);
     char *arg0(strdup("ScreenDumpVNC"));
     char *argv[] = {arg0, NULL};
-    screen = rfbGetScreen(&argc, argv, width, height, 8, 3, byte_per_pixel);
+    screen = rfbGetScreen(&argc, argv, width, height, bits_per_sample, 3, byte_per_pixel);
     screen->frameBuffer = (char *)malloc(width*height*byte_per_pixel);
+    screen->serverFormat.redShift = bits_per_sample * 2;
+    screen->serverFormat.greenShift = bits_per_sample * 1;
+    screen->serverFormat.blueShift = bits_per_sample * 0;
     free(arg0);
 }
 
