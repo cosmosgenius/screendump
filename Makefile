@@ -6,7 +6,11 @@ include $(THEOS)/makefiles/common.mk
 TWEAK_NAME = screendump
 screendump_FILES = Tweak.xm
 screendump_FRAMEWORKS := IOSurface
-screendump_PRIVATE_FRAMEWORKS := IOMobileFramebuffer
+screendump_PRIVATE_FRAMEWORKS := IOMobileFramebuffer IOSurface
+
+ADDITIONAL_OBJCFLAGS += -Ivncbuild/include
+ADDITIONAL_LDFLAGS += -Lvncbuild/lib  -lvncserver -lpng -llzo2 -ljpeg -lssl -lcrypto -lz
+ADDITIONAL_CFLAGS = -w
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 
