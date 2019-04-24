@@ -42,66 +42,6 @@ static void VNCUpdateRunState(bool shouldStart);
 static IOSurfaceAcceleratorRef accelerator;
 static IOSurfaceRef static_buffer;
 
-int bmp_write(const void *image, size_t xsize, size_t ysize, const char *filename) {
-    // unsigned char header[54] = {
-    //     0x42, 0x4d, 0, 0, 0, 0, 0, 0, 0, 0,
-    //     54, 0, 0, 0, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 32, 0,
-    //     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //     0, 0, 0, 0
-    // };
-
-    // long file_size = (long)xsize * (long)ysize * 4 + 54;
-    // header[2] = (unsigned char)(file_size &0x000000ff);
-    // header[3] = (file_size >> 8) & 0x000000ff;
-    // header[4] = (file_size >> 16) & 0x000000ff;
-    // header[5] = (file_size >> 24) & 0x000000ff;
-
-    // long width = xsize;
-    // header[18] = width & 0x000000ff;
-    // header[19] = (width >> 8) &0x000000ff;
-    // header[20] = (width >> 16) &0x000000ff;
-    // header[21] = (width >> 24) &0x000000ff;
-
-    // long height = ysize;
-    // header[22] = height &0x000000ff;
-    // header[23] = (height >> 8) &0x000000ff;
-    // header[24] = (height >> 16) &0x000000ff;
-    // header[25] = (height >> 24) &0x000000ff;
-
-    char fname_bmp[128];
-    sprintf(fname_bmp, "%s", filename);
-
-    FILE *fp;
-    if (!(fp = fopen(fname_bmp, "wb"))) {
-        NSLog(@"Error no is : %s, %d", fname_bmp, errno);
-        return -1;
-    }
-
-    // fwrite(header, sizeof(unsigned char), 54, fp);
-    fwrite(image, sizeof(unsigned char), (size_t)(long)xsize * ysize * 4, fp);
-
-    fclose(fp);
-    return 0;
-}
-
-int write_to_file(const void *image, size_t xsize, size_t ysize, size_t pixel_size, const char *filename) {
-    char fname_bmp[128];
-    sprintf(fname_bmp, "%s", filename);
-    if( access( fname_bmp, F_OK ) != -1 ) {
-        return 0;
-    } else {
-        FILE *fp;
-        if (!(fp = fopen(fname_bmp, "wb"))) {
-            NSLog(@"Error no is : %s, %d", fname_bmp, errno);
-            return -1;
-        }
-        NSLog(@"sharat write to file");
-        fwrite(image, sizeof(unsigned char), (size_t)(long)xsize * ysize * pixel_size, fp);
-        fclose(fp);
-    }
-    return 0;
-}
-
 static void VNCSetup() {
     int argc(1);
     char *arg0(strdup("ScreenDumpVNC"));
