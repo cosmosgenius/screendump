@@ -2,6 +2,8 @@
 #include <substrate.h>
 #include <rfb/rfb.h>
 
+#include "KeyboardHandle.xm"
+
 static bool CCSisEnabled = true;
 static rfbScreenInfoPtr screen;
 static bool isVNCRunning;
@@ -52,6 +54,7 @@ static void VNCSetup() {
     screen->serverFormat.redShift = bits_per_sample * 2;
     screen->serverFormat.greenShift = bits_per_sample * 1;
     screen->serverFormat.blueShift = bits_per_sample * 0;
+    screen->kbdAddEvent = &handleVNCKeyboard;
     free(arg0);
 }
 

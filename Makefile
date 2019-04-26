@@ -5,10 +5,10 @@ include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = screendump
 screendump_FILES = Tweak.xm
-screendump_FRAMEWORKS := IOSurface
+screendump_FRAMEWORKS := IOSurface IOKit
 screendump_PRIVATE_FRAMEWORKS := IOMobileFramebuffer IOSurface
 
-ADDITIONAL_OBJCFLAGS += -Ivncbuild/include
+ADDITIONAL_OBJCFLAGS += -Ivncbuild/include -Iinclude
 ADDITIONAL_LDFLAGS += -Lvncbuild/lib  -lvncserver -lpng -llzo2 -ljpeg -lssl -lcrypto -lz
 ADDITIONAL_CFLAGS = -w
 
