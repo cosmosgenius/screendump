@@ -106,7 +106,10 @@ typedef uint32_t IOHIDEventType;
 */
 enum {
     kIOHIDEventFieldIsRelative = IOHIDEventFieldBase(kIOHIDEventTypeNULL),
-    kIOHIDEventFieldIsCollection
+    kIOHIDEventFieldIsCollection,
+    kIOHIDEventFieldIsPixelUnits,
+    kIOHIDEventFieldIsCenterOrigin,
+    kIOHIDEventFieldIsBuiltIn
 };
 
 enum {
@@ -290,7 +293,13 @@ enum {
     kIOHIDEventFieldDigitizerMinorRadius,
     kIOHIDEventFieldDigitizerCollection,
     kIOHIDEventFieldDigitizerCollectionChord,
-    kIOHIDEventFieldDigitizerChildEventMask
+    kIOHIDEventFieldDigitizerChildEventMask,
+    kIOHIDEventFieldDigitizerIsDisplayIntegrated,
+    kIOHIDEventFieldDigitizerQualityRadiiAccuracy,
+    kIOHIDEventFieldDigitizerGenerationCount,
+    kIOHIDEventFieldDigitizerWillUpdateMask,
+    kIOHIDEventFieldDigitizerDidUpdateMask,
+    kIOHIDEventFieldDigitizerEstimatedMask
 };
 
 enum {
