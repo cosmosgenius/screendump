@@ -1,9 +1,9 @@
 Package: com.cosmosgenius.screendump
 Name: screendump
-Depends: mobilesubstrate
-Version: 0.0.1
+Depends: mobilesubstrate, preferenceloader
+Version: 0.0.2
 Architecture: iphoneos-arm
-Description: An awesome MobileSubstrate tweak!
-Maintainer: Sharat M R
-Author: Sharat M R
+Description: VNC for ios
+Maintainer: Sharat M R <cosmosgenius@gmail.com>
+Author: Sharat M R <cosmosgenius@gmail.com>
 Section: Tweaks
