@@ -4,6 +4,8 @@
 
 // #include "IOHIDHandle.xm"
 
+#define kSettingsPath [NSHomeDirectory() stringByAppendingPathComponent:@"/Library/Preferences/com.cosmosgenius.screendump.plist"]
+
 static bool CCSisEnabled = true;
 static rfbScreenInfoPtr screen;
 static bool isVNCRunning;
@@ -60,6 +62,7 @@ static void VNCSetup() {
     screen->kbdAddEvent = &handleVNCKeyboard;
     screen->ptrAddEvent = &handleVNCPointer;
     free(arg0);
+    VNCUpdateRunState(CCSisEnabled);
 }
 
 static void VNCBlack() {
@@ -164,15 +167,28 @@ static void OnFrameUpdate(IOMobileFramebufferRef fb, IOSurfaceRef buffer) {
     rfbMarkRectAsModified(screen, 0, 0, width, height);
 }
 
-static void loadPrefs()
+static void loadPrefs(void)
 {
-    CFPreferencesAppSynchronize(CFSTR("com.cosmosgenius.screendump"));
-    Boolean valid;
-    bool enabled(CFPreferencesGetAppBooleanValue(CFSTR("CCSisEnabled"), CFSTR("com.cosmosgenius.screendump"), &valid));
-    CCSisEnabled = enabled;
-    @synchronized (lock) {
-        VNCUpdateRunState(CCSisEnabled);
+    NSDictionary* prefs = nil;
+    CFStringRef appID = CFSTR("com.cosmosgenius.screendump");
+    CFArrayRef keyList = CFPreferencesCopyKeyList(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+    if(keyList) {
+        prefs = (NSDictionary *)CFPreferencesCopyMultiple(keyList, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+        if(!prefs) {
+            prefs = [NSDictionary new];
+        }
+        CFRelease(keyList);
     }
+
+    if(!prefs) {
+        prefs = [NSDictionary dictionaryWithContentsOfFile:kSettingsPath];
+    }
+
+    if(prefs) {
+        CCSisEnabled = [prefs objectForKey:@"CCSisEnabled"] ? [[prefs objectForKey:@"CCSisEnabled"] boolValue] : CCSisEnabled;
+        [prefs release];
+    }
+    VNCUpdateRunState(CCSisEnabled);
 }
 
 %hookf(kern_return_t, IOMobileFramebufferSwapSetLayer, IOMobileFramebufferRef fb, int layer, IOSurfaceRef buffer, CGRect bounds, CGRect frame, int flags) {
@@ -187,7 +203,6 @@ static void loadPrefs()
         NULL, (CFNotificationCallback)loadPrefs,
         CFSTR("com.cosmosgenius.screendump/preferences.changed"),
         NULL, CFNotificationSuspensionBehaviorCoalesce);
-    lock = [[NSLock alloc] init];
     loadPrefs();
 }
 
@@ -418,6 +433,5 @@ static void handleVNCKeyboard(rfbBool down, rfbKeySym key, rfbClientPtr client) 
 }
 
 static void handleVNCPointer(int buttons, int x, int y, rfbClientPtr client) {
-    NSLog(@"sharat %ld %ld %ld", buttons, x, y);
     VNCPointer(buttons, x, y, client);
 }
