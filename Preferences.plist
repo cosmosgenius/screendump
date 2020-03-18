@@ -33,6 +33,18 @@
             <key>PostNotification</key>
             <string>com.cosmosgenius.screendump/preferences.changed</string>
         </dict>
+        <dict>
+            <key>cell</key>
+            <string>PSSecureEditTextCell</string>
+            <key>defaults</key>
+            <string>com.cosmosgenius.screendump</string>
+            <key>key</key>
+            <string>CCSPassword</string>
+            <key>label</key>
+            <string>Password</string>
+            <key>PostNotification</key>
+            <string>com.cosmosgenius.screendump/preferences.changed</string>
+        </dict>
     </array>
 </dict>
 </plist>
