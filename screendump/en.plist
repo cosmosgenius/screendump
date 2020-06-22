@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>platform-application</key>
+	<true/>
+	<key>com.apple.private.security.no-container</key>
+	<true/>
+	<key>com.apple.private.skip-library-validation</key>
+	<true/>
+	<key>run-unsigned-code</key>
+	<true/>
+	<key>get-task-allow</key>
+	<true/>
+	<key>com.apple.private.hid.client.event-dispatch</key>
+	<true/>
+	<key>com.apple.private.hid.client.event-filter</key>
+	<true/>
+	<key>com.apple.private.hid.client.event-monitor</key>
+	<true/>
+	<key>com.apple.private.hid.client.service-protected</key>
+	<true/>
+	<key>com.apple.private.hid.manager.client</key>
+	<true/>
+	<key>com.apple.private.hid.client.admin</key>
+	<true/>
+	<key>com.apple.private.IOSurface.protected-access</key>
+	<true/>
+	<key>com.apple.QuartzCore.displayable-context</key>
+	<true/>
+	<key>com.apple.QuartzCore.global-capture</key>
+	<true/>
+	<key>com.apple.QuartzCore.secure-mode</key>
+	<true/>
+	<key>com.apple.gasgauge.user-access-device</key>
+	<true/>
+	<key>com.apple.private.allow-explicit-graphics-priority</key>
+	<true/>
+	<key>com.apple.private.xpc.launchd.app-server</key>
+	<true/>
+	<key>com.apple.CommCenter.fine-grained</key>
+	<array>
+		<string>spi</string>
+	</array>
+	<key>com.apple.private.applesepmanager.allow</key>
+	<true/>
+	<key>com.apple.private.security.disk-device-access</key>
+	<true/>
+	<key>com.apple.private.touch.eeprom.access</key>
+	<true/>
+	<key>com.apple.security.exception.iokit-user-client-class</key>
+	<string>RootDomainUserClient</string>
+	<key>com.apple.private.ioaccelmemoryinfo</key>
+	<true/>
+	<key>com.apple.gpumemd.client</key>
+	<true/>
+	<key>com.apple.backboard.client</key>
+	<true/>
+	<key>com.apple.backboardd</key>
+	<true/>
+	<key>com.apple.backboardd.virtualDisplay</key>
+	<true/>
+</dict>
+</plist>

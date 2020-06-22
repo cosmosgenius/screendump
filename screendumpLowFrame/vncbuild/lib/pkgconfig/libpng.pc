@@ -1,0 +1,12 @@
+prefix=/Users/sharat/projects/github/experimentvnc/vnc/build
+exec_prefix=/Users/sharat/projects/github/experimentvnc/vnc/build
+libdir=/Users/sharat/projects/github/experimentvnc/vnc/build/lib
+includedir=/Users/sharat/projects/github/experimentvnc/vnc/build/include/libpng16
+
+Name: libpng
+Description: Loads and saves PNG files
+Version: 1.6.36
+Requires: zlib
+Libs: -L${libdir} -lpng16
+Libs.private: -lz -lm
+Cflags: -I${includedir}
