@@ -65,6 +65,8 @@ static void VNCUpdateRunState(bool shouldStart);
 static void handleVNCKeyboard(rfbBool down, rfbKeySym key, rfbClientPtr client);
 static void handleVNCPointer(int buttons, int x, int y, rfbClientPtr client);
 
+static BOOL isLoopFrame;
+
 static rfbBool VNCCheck(rfbClientPtr client, const char *data, int size)
 {
     NSString *password = reinterpret_cast<NSString *>(screen->authPasswdData);
@@ -81,6 +83,7 @@ static rfbBool VNCCheck(rfbClientPtr client, const char *data, int size)
     return good;
 }
 
+static void upFrameLoop();
 static IOSurfaceRef screenSurface = NULL;
 static IOMobileFramebufferRef framebufferConnection = NULL;
 
@@ -162,7 +165,14 @@ static void VNCUpdateRunState(bool shouldStart)
     if(shouldStart) {
         rfbInitServer(screen);
         rfbRunEventLoop(screen, -1, true);
+		
+		isLoopFrame = YES;
+		dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+			upFrameLoop();
+		});
+		
     } else {
+		isLoopFrame = NO;
         rfbShutdownServer(screen, true);
     }
     isVNCRunning = shouldStart;
@@ -188,18 +198,18 @@ static void upFrameLoop()
 {
 	if(size_image == 0) {
 		VNCSetup();
-	}	
-	
-	if(CCSisEnabled && rfbIsActive(screen) && IOSurfaceIsInUse(screenSurface)) {
-		IOSurfaceAcceleratorTransferSurface(accelerator, screenSurface, static_buffer, NULL, NULL, NULL, NULL);
-		//check if screen changed
-		if(!(memcmp(IOSurfaceGetBaseAddress(static_buffer), "\xFF\x00\xFF\xFF\xFF\x00\xFF\xFF\xFF", 9) == 0)) {
-			rfbMarkRectAsModified(screen, 0, 0, width, height);
-		}
-		//sleep(1/100);
 	}
-	
-	upFrameLoop();
+	while(isLoopFrame && CCSisEnabled) {
+		if(rfbIsActive(screen) && IOSurfaceIsInUse(screenSurface)) {
+			IOSurfaceAcceleratorTransferSurface(accelerator, screenSurface, static_buffer, NULL, NULL, NULL, NULL);
+			//check if screen changed
+			void * buffBytes = IOSurfaceGetBaseAddress(static_buffer);
+			if(buffBytes && !(memcmp(buffBytes, "\xFF\x00\xFF\xFF\xFF\x00\xFF\xFF\xFF", 9) == 0)) {
+				rfbMarkRectAsModified(screen, 0, 0, width, height);
+			}
+			//sleep(1/100);
+		}
+	}
 }
 
 
@@ -213,9 +223,7 @@ int main(int argc, const char *argv[])
 	VNCSetup();
 	//VNCBlack();
 	
-	dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-		upFrameLoop();
-	});
+	
 	
 	[[NSRunLoop currentRunLoop] run];
 	
