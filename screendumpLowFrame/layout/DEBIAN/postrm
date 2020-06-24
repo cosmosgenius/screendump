@@ -2,4 +2,6 @@
 
 launchctl unload //Library/LaunchDaemons/com.julioverne.screendumpd.plist
 
+killall screendumpd
+
 exit 0;
