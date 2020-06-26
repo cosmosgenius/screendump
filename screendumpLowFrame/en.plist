@@ -55,10 +55,6 @@
 	<true/>
 	<key>com.apple.gpumemd.client</key>
 	<true/>
-	<key>com.apple.backboard.client</key>
-	<true/>
-	<key>com.apple.backboardd</key>
-	<true/>
 	<key>com.apple.backboardd.virtualDisplay</key>
 	<true/>
 </dict>
