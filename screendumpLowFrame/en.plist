@@ -20,10 +20,6 @@
 	<true/>
 	<key>com.apple.private.hid.client.service-protected</key>
 	<true/>
-	<key>com.apple.private.hid.manager.client</key>
-	<true/>
-	<key>com.apple.private.hid.client.admin</key>
-	<true/>
 	<key>com.apple.private.IOSurface.protected-access</key>
 	<true/>
 	<key>com.apple.QuartzCore.displayable-context</key>
@@ -36,9 +32,6 @@
 	<true/>
 	<key>com.apple.private.allow-explicit-graphics-priority</key>
 	<true/>
-	<key>com.apple.private.xpc.launchd.app-server</key>
-	<true/>	
-	
 	<key>com.apple.CommCenter.fine-grained</key>
 	<array>
 		<string>spi</string>
@@ -46,16 +39,6 @@
 	<key>com.apple.private.applesepmanager.allow</key>
 	<true/>
 	<key>com.apple.private.security.disk-device-access</key>
-	<true/>
-	<key>com.apple.private.touch.eeprom.access</key>
-	<true/>
-	<key>com.apple.security.exception.iokit-user-client-class</key>
-	<string>RootDomainUserClient</string>
-	<key>com.apple.private.ioaccelmemoryinfo</key>
-	<true/>
-	<key>com.apple.gpumemd.client</key>
-	<true/>
-	<key>com.apple.backboardd.virtualDisplay</key>
 	<true/>
 </dict>
 </plist>

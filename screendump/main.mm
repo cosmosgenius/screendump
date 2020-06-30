@@ -19,6 +19,9 @@ static size_t bits_per_sample = 8;
 
 static size_t size_image;
 
+static size_t prefferH;
+static size_t prefferW;
+
 static CFTypeRef (*$GSSystemCopyCapability)(CFStringRef);
 static CFTypeRef (*$GSSystemGetCapability)(CFStringRef);
 static BOOL (*$MGGetBoolAnswer)(CFStringRef);
@@ -83,9 +86,14 @@ static rfbBool VNCCheck(rfbClientPtr client, const char *data, int size)
     return good;
 }
 
-static void upFrameLoop();
 static IOSurfaceRef screenSurface = NULL;
 static IOMobileFramebufferRef framebufferConnection = NULL;
+
+@interface FrameUpdater : NSObject
+@property (nonatomic, retain) NSTimer* myTimer;
+- (void)startFrameLoop;
+- (void)stopFrameLoop;
+@end
 
 static void VNCSetup()
 {
@@ -100,8 +108,8 @@ static void VNCSetup()
 		//width = size.width/2;
 		//height = size.height/2;
 		
-		width = IOSurfaceGetWidth(screenSurface) / 2;
-		height = IOSurfaceGetHeight(screenSurface) / 2;
+		width = prefferW==0?IOSurfaceGetWidth(screenSurface):prefferW;
+		height = prefferW==0?IOSurfaceGetHeight(screenSurface):prefferH;
 		
 		size_image = IOSurfaceGetAllocSize(screenSurface);
 		bytesPerRow = IOSurfaceGetBytesPerRow(screenSurface);
@@ -149,11 +157,15 @@ static void VNCSettings(bool shouldStart, NSString* password)
     VNCUpdateRunState(CCSisEnabled);
 }
 
+
+
 static void VNCUpdateRunState(bool shouldStart)
 {
     if(screen == NULL) {
         return;
     }
+	
+	
     if(CCSPassword && CCSPassword.length) {
         screen->authPasswdData = (void *) CCSPassword;
     } else {
@@ -167,12 +179,14 @@ static void VNCUpdateRunState(bool shouldStart)
         rfbRunEventLoop(screen, -1, true);
 		
 		isLoopFrame = YES;
-		dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-			upFrameLoop();
-		});
+		
+		[[FrameUpdater shared] startFrameLoop];
 		
     } else {
 		isLoopFrame = NO;
+		
+		[[FrameUpdater shared] stopFrameLoop];
+		
         rfbShutdownServer(screen, true);
     }
     isVNCRunning = shouldStart;
@@ -188,36 +202,91 @@ static void loadPrefs(void)
 			defaults = (NSDictionary *)CFPreferencesCopyMultiple(keyList, appID, CFSTR("mobile"), kCFPreferencesAnyHost)?:@{};
 			CFRelease(keyList);
 		}
+		
+		prefferH = [[defaults objectForKey:@"height"]?:@(0) intValue];
+		prefferW = [[defaults objectForKey:@"width"]?:@(0) intValue];
+		
 		BOOL isEnabled = [[defaults objectForKey:@"CCSisEnabled"]?:@NO boolValue];
 		NSString *password = [defaults objectForKey:@"CCSPassword"];
 		VNCSettings(isEnabled, password);
 	}
 }
 
-static void upFrameLoop()
+
+static uint32_t oldSeed;
+
+@implementation FrameUpdater
+{
+	NSOperationQueue *q;
+}
+@synthesize myTimer;
++ (id)shared
+{
+	static __strong FrameUpdater* initFrame;
+	if(!initFrame) {
+		initFrame = [[[self class] alloc] init];
+	}
+	return initFrame;
+}
+- (id)init
+{
+	self = [super init];
+	
+	q = [[NSOperationQueue alloc] init];
+	
+	return self;
+}
+- (void)_upFrameLoop
+{
+	if(isLoopFrame && CCSisEnabled) {
+		//check if screen changed
+		uint32_t newSeed = IOSurfaceGetSeed(screenSurface);
+		
+		if(oldSeed != newSeed && rfbIsActive(screen)) {
+			oldSeed = newSeed;
+			[q addOperationWithBlock: ^{
+				IOSurfaceAcceleratorTransferSurface(accelerator, screenSurface, static_buffer, NULL, NULL, NULL, NULL);
+				rfbMarkRectAsModified(screen, 0, 0, width, height);
+			}];
+		}
+	} else {
+		[self stopFrameLoop];
+	}
+}
+- (void)stopFrameLoop
+{
+	if(myTimer && [myTimer isValid]) {
+		dispatch_async(dispatch_get_main_queue(), ^(void){
+			[myTimer invalidate];
+		});
+	}
+}
+- (void)startFrameLoop
 {
 	if(size_image == 0) {
 		VNCSetup();
 	}
-	while(isLoopFrame && CCSisEnabled) {
-		if(rfbIsActive(screen) && IOSurfaceIsInUse(screenSurface)) {
-			IOSurfaceAcceleratorTransferSurface(accelerator, screenSurface, static_buffer, NULL, NULL, NULL, NULL);
-			//check if screen changed
-			void * buffBytes = IOSurfaceGetBaseAddress(static_buffer);
-			if(buffBytes && !(memcmp(buffBytes, "\xFF\x00\xFF\xFF\xFF\x00\xFF\xFF\xFF", 9) == 0)) {
-				rfbMarkRectAsModified(screen, 0, 0, width, height);
-			}
-			//sleep(1/100);
-		}
-	}
+	[self stopFrameLoop];
+	dispatch_async(dispatch_get_main_queue(), ^(void){
+		myTimer = [NSTimer scheduledTimerWithTimeInterval:1/400 target:self selector:@selector(_upFrameLoop) userInfo:nil repeats:YES];
+	});
 }
+-(void)dealloc
+{
+    [self stopFrameLoop];
+}
+@end
 
-
+static void restartServer()
+{
+	exit(0);
+}
 
 int main(int argc, const char *argv[])
 {
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)loadPrefs, CFSTR("com.cosmosgenius.screendump/preferences.changed"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
-		
+	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)restartServer, CFSTR("com.cosmosgenius.screendump/restart"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
+	
     loadPrefs();
 	
 	VNCSetup();
